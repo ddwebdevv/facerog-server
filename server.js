@@ -99,6 +99,14 @@ app.get('/profile/:id', (req, res) => {
 
 app.put('/image', (req, res) => {
     const { id } = req.body;
+
+    db('users').where('id', '=', id)
+    .increment('entries', 1)
+    .returning('entries')
+    .then(entries => {
+        res.json(entries[0]);
+    })
+    .catch(err => res.status(400).json('unable to get entries'));
     
 });
 
@@ -121,3 +129,4 @@ app.listen(3000, () => {
 /profile/:userId --> GET = user
 /image --> PUT --> user
 */
+//user interface pop up {1589}, Kola-Cola 
