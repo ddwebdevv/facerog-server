@@ -3,6 +3,10 @@ import bcrypt from 'bcrypt-nodejs';
 import cors from 'cors';
 // const knex = require('knex');
 import knex from 'knex';
+import { handleRegister } from './controllers/register.js';
+import { handleSignin } from './controllers/signin.js';
+import { handleProfileGet } from './controllers/profileget.js';
+import { handleImage } from './controllers/image.js';
 
 const db = knex({
     client: 'pg',
@@ -23,84 +27,18 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const database = {
-    users: [
-        {
-            id: '123',
-            name: 'John',
-            password: 'cookies',
-            email: 'john@gmail.com',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'Sally',
-            password: 'banana',
-            email: 'sally@gmail.com',
-            entries: 0,
-            joined: new Date()
-        }
-    ],
-    login: [
-        {
-            id: '987',
-            hash: '',
-            email: 'john@gmail.com'
-        }
-    ]
-}
-
-
 
 app.get('/', (req, res) => {
     res.send(database.users);
 });
 
-app.post('/signin', (req, res) => {   
-    if (req.body.email === database.users[0].email
-        && req.body.password === database.users[0].password){
-        res.json(database.users[0]);
-    } else {
-        res.status(400).json('error logging in')
-    }
-});
+app.post('/signin', (req, res) => { handleSignin(req, res, db, bcrypt)});
 
-app.post('/register', (req, res) => {
-    const { email, name, password } = req.body;
-    db('users')
-        .returning('*')
-        .insert({
-            email: email,
-            name: name,
-            joined: new Date()
-        })
-        .then(user => {
-            res.json(user[0]);
-        })
-        .catch(err => res.status(400).json('unable to register'));  
-});
+app.post('/register', (req, res) => { handleRegister(req, res, db, bcrypt) });
 
-app.get('/profile/:id', (req, res) => {
-    const { id } = req.params;
-    db.select('*').from('users')
-        .where({
-            id: id
-        })
-        .then(user => {
-            if (user.length){
-                res.json(user[0]);
-            } else {
-                res.status(400).json('not found');
-            }
-        })
-        .catch(err => res.status(400).json('error getting user'));
-});
+app.get('/profile/:id', (req, res) => { handleProfileGet(req, res, db) });
 
-app.put('/image', (req, res) => {
-    const { id } = req.body;
-    
-});
+app.put('/image', (req, res) => { handleImage(req, res, db) });
 
 
 
